@@ -1,12 +1,14 @@
 {
   "name": "my-bun-api",
-  "module": "server.ts",
+  "main": "src/server.ts",
   "type": "module",
   "scripts": {
-    "start": "bun server.ts",
-    "dev": "bun --watch server.ts",
+    "start": "bun src/server.ts",
+    "dev": "bun --watch src/server.ts",
     "test": "bun test"
   },
+  "version": "0.1.0",
+  "description": "Simple Bun API for sheets",
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"
