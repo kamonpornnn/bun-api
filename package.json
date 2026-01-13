@@ -7,8 +7,6 @@
     "dev": "bun --watch src/server.ts",
     "test": "bun test"
   },
-  "version": "0.1.0",
-  "description": "Simple Bun API for sheets",
   "private": true,
   "devDependencies": {
     "@types/bun": "latest"
