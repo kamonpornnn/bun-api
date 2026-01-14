@@ -1,4 +1,4 @@
-import { GetAllOPDVisits, AddOPDVisit } from "../controllers/OPDVisitController";
+import { GetAllOPDVisits, AddOPDVisit } from "../controllers/OpdController";
 
 export const opdVisitsRoutes = [
   {

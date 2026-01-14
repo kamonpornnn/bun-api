@@ -1,4 +1,4 @@
-export interface Patients {
+export interface mt_patients {
   patient_id: string;  
   first_name: string;
   last_name: string;

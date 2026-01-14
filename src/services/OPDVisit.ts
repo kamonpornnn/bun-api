@@ -1,17 +1,34 @@
 import { google } from "googleapis";
-import type { OPDVisit } from "../models/OPDVisit";
+import type { t_opd } from "../models/t_opd";
 
-const auth = new google.auth.GoogleAuth({
-  credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!),
-  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-});
+const auth = (() => {
+  const scopes = ["https://www.googleapis.com/auth/spreadsheets"];
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const creds = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!);
+      if (creds.private_key && typeof creds.private_key === "string") {
+        let pk: string = creds.private_key;
+        pk = pk.replace(/\\\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n/g, "\n").trim();
+        if (pk.startsWith('"') && pk.endsWith('"')) pk = pk.slice(1, -1);
+        creds.private_key = pk;
+      }
+      return new google.auth.GoogleAuth({ credentials: creds as any, scopes });
+    } catch (e) {
+      console.error("Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON:", e);
+    }
+  }
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return new google.auth.GoogleAuth({ keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS, scopes });
+  }
+  return new google.auth.GoogleAuth({ scopes });
+})();
 
 const sheets = google.sheets({ version: "v4", auth });
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID!;
 const SHEET_NAME = process.env.SHEET_OPD_VISITS!;
 
 export const opdVisitService = {
-  async getAll(): Promise<OPDVisit[]> {
+  async getAll(): Promise<t_opd[]> {
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_NAME}!A2:Z`,
@@ -21,24 +38,24 @@ export const opdVisitService = {
         opd_id: row[0],
         patient_id: row[1],
         visit_date: row[2],
-        bp_systolic: row[3] !== undefined && row[3] !== "" ? Number(row[3]) : null,
-        bp_diastolic: row[4] !== undefined && row[4] !== "" ? Number(row[4]) : null,
-        pr: row[5] !== undefined && row[5] !== "" ? Number(row[5]) : null,
-        temperature_c: row[6] !== undefined && row[6] !== "" ? Number(row[6]) : null,
-        pain_score: row[7] !== undefined && row[7] !== "" ? Number(row[7]) : null,
+        bp_systolic: row[3] !== undefined && row[3] !== "" ? Number(row[3]) : 0,
+        bp_diastolic: row[4] !== undefined && row[4] !== "" ? Number(row[4]) : 0,
+        pr: row[5] !== undefined && row[5] !== "" ? Number(row[5]) : 0,
+        temperature_c: row[6] !== undefined && row[6] !== "" ? Number(row[6]) : 0,
+        pain_score: row[7] !== undefined && row[7] !== "" ? Number(row[7]) : 0,
         chief_complaint: row[8],
         diagnosis: row[9],
         treatment: row[10],
-        status: (row[11] as "DRAFT" | "CLOSED") || "DRAFT",
-        payment_type: row[12] || null,
-        package_id: row[13] || null,
+        payment_type: row[11],
+        patient_package_id: row[12],
+        status: row[13],
         created_at: row[14],
         updated_at: row[15],
       })) || []
     );
   },
 
-  async addOPDVisit(opd: OPDVisit): Promise<void> {
+  async addOPDVisit(opd: t_opd): Promise<void> {
     const values = [
       [
         opd.opd_id,
@@ -52,9 +69,9 @@ export const opdVisitService = {
         opd.chief_complaint,
         opd.diagnosis,
         opd.treatment,
-        opd.status,
         opd.payment_type,
-        opd.package_id,
+        opd.patient_package_id,
+        opd.status,
         opd.created_at,
         opd.updated_at,
       ],

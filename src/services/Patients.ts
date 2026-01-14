@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import type { Patients } from "../models/Patients";
+import type { mt_patients } from "../models/mt_patients";
 
 // const auth = new google.auth.GoogleAuth({
 //   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
@@ -17,7 +17,7 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID!;
 const SHEET_NAME = process.env.SHEET_PATIENTS!;
 
 export const patientsService = {
-    async getAll(): Promise<Patients[]> {
+    async getAll(): Promise<mt_patients[]> {
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: `${SHEET_NAME}!A2:Q`,
@@ -44,7 +44,7 @@ export const patientsService = {
         })) || [];
     },
 
-    async addPatient(patient: Patients): Promise<void> {
+    async addPatient(patient: mt_patients): Promise<void> {
         const values = [
             [
                 patient.patient_id,
